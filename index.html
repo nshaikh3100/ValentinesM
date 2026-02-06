@@ -15,9 +15,9 @@
             background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
             height: 100vh;
             width: 100vw;
-            overflow: hidden; /* Locked initially */
+            overflow: hidden;
             transition: background 2s ease;
-            -webkit-tap-highlight-color: transparent; /* Remove blue tap box on mobile */
+            -webkit-tap-highlight-color: transparent;
         }
 
         body.sunset-mode {
@@ -35,7 +35,66 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* --- 2. HERO SECTION --- */
+        /* --- 2. LOGIN OVERLAY (NEW) --- */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000; /* On top of EVERYTHING */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+
+        .login-box {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .login-box h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+        }
+
+        input[type="password"] {
+            padding: 10px 15px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            border: 2px solid #ff6b6b;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            outline: none;
+            text-align: center;
+            margin-bottom: 15px;
+            width: 200px;
+        }
+
+        .enter-btn {
+            padding: 10px 30px;
+            font-size: 1.1rem;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .error-msg {
+            color: red;
+            margin-top: 10px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        /* --- 3. HERO SECTION --- */
         #hero-section {
             height: 100vh;
             width: 100%;
@@ -55,7 +114,7 @@
 
         h1 {
             font-family: 'Dancing Script', cursive;
-            font-size: 3.5rem; /* Default for desktop */
+            font-size: 3.5rem;
             margin-bottom: 10px;
             text-shadow: 0 0 10px #fff, 0 0 20px #ff00de;
             line-height: 1.2;
@@ -113,7 +172,7 @@
         #yesBtn { background: white; color: #090a0f; box-shadow: 0 0 20px white; }
         #noBtn { background: rgba(255,255,255,0.1); color: white; border: 2px solid white; backdrop-filter: blur(5px); }
 
-        /* --- 3. LOVE CONTENT --- */
+        /* --- 4. LOVE CONTENT --- */
         #love-content {
             display: none;
             opacity: 0;
@@ -212,7 +271,7 @@
             background: white;
             padding: 10px 10px 40px 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            width: 80%; /* Mobile friendly width */
+            width: 80%;
             max-width: 250px;
             transform: rotate(-2deg);
             margin-bottom: 20px;
@@ -265,16 +324,26 @@
 
     <canvas id="bgCanvas"></canvas>
 
-    <div class="music-btn" id="musicBtn">🎵</div>
+    <div class="music-btn" id="musicBtn" style="display:none;">🎵</div>
     <audio id="bgMusic" loop>
         <source src="https://www.bensound.com/bensound-music/bensound-love.mp3" type="audio/mpeg">
     </audio>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>Who is my Valentine?</h2>
+            <input type="password" id="passwordInput" placeholder="Enter Name...">
+            <br>
+            <button class="enter-btn" onclick="checkPassword()">Enter ❤️</button>
+            <p class="error-msg" id="errorMsg">Wrong number! Try "130802" 😉</p>
+        </div>
+    </div>
 
     <div id="hero-section">
         <div class="gif-container">
             <img src="bear.gif" onerror="this.src='https://media.tenor.com/I7kd00u9kC0AAAAi/mocha-bear-hearts.gif'; this.onerror=null;" alt="Cute Bear">
         </div>
-        <h1>Ziksuuuuu, will you be my Valentine?</h1>
+        <h1>Ziksuuuu, will you be my Valentine?</h1>
         <p class="subtitle">Meri honi wali biwi... 🌹🌹🌹</p>
         
         <div class="btn-container">
@@ -320,28 +389,54 @@
         const musicBtn = document.getElementById('musicBtn');
         const bgMusic = document.getElementById('bgMusic');
         
-        // --- MOBILE-FRIENDLY "NO" BUTTON ---
-        // Works on Mouse AND Touch
+        // --- PASSWORD LOGIC ---
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+            const error = document.getElementById('errorMsg');
+            const overlay = document.getElementById('login-overlay');
+
+            // CHANGE PASSWORD HERE (Case sensitive!)
+            if (input === "130802" || input === "13082002") {
+                // Correct Password
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 1000);
+                
+                // START MUSIC AUTOMATICALLY
+                bgMusic.play().then(() => {
+                    musicBtn.style.display = "flex"; // Show button only after login
+                    musicBtn.innerHTML = "⏸️";
+                }).catch(e => {
+                    console.log("Audio blocked: " + e);
+                    musicBtn.style.display = "flex";
+                });
+
+            } else {
+                // Wrong Password
+                error.style.display = 'block';
+                // Shake effect
+                const box = document.querySelector('.login-box');
+                box.style.transform = "translateX(10px)";
+                setTimeout(() => { box.style.transform = "translateX(0)"; }, 100);
+            }
+        }
+
+        // --- MOBILE NO BUTTON ---
         function moveButton(e) {
-            // Prevent tap on mobile
             if(e.type === 'touchstart') e.preventDefault();
-            
             const width = window.innerWidth;
             const height = window.innerHeight;
             const btnWidth = noBtn.offsetWidth;
             const btnHeight = noBtn.offsetHeight;
-            
-            // Limit movement to safe area (so it doesn't go off screen)
             const newX = Math.random() * (width - btnWidth - 40) + 20;
             const newY = Math.random() * (height - btnHeight - 40) + 20;
-
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${newX}px`;
             noBtn.style.top = `${newY}px`;
         }
-
         noBtn.addEventListener('mouseover', moveButton);
-        noBtn.addEventListener('touchstart', moveButton); // Mobile magic
+        noBtn.addEventListener('touchstart', moveButton);
         noBtn.addEventListener('click', moveButton);
 
         // --- YES INTERACTION ---
@@ -349,7 +444,6 @@
             document.body.classList.add('sunset-mode');
             hero.style.opacity = "0";
             hero.style.transform = "translateY(-100vh)";
-            
             setTimeout(() => {
                 hero.style.display = "none";
                 content.style.display = "block";
@@ -357,67 +451,47 @@
                 currentMode = 'hearts';
                 particles = []; 
             }, 800);
-
-            playMusic();
         });
 
         // --- TYPEWRITER ---
-        const fullText = "Meri Pyaari Jaan,\n\nI am so incredibly glad to have you in my life. You are my Precious Penguin🐧, my happiness, and my everything.\n\nFrom the moment I met you, my life became brighter. Every laugh, every smile, and every moment we share is a memory I treasure.\n\nThank you for being you. I love you more than words can explain.\n\nForever yours,\nYour Valentine\nNumaan💖";
+        const fullText = ""Meri pyaari Jaan,\n\nI am so incredibly glad to have you in my life. You are my Precious Penguin🐧, my happiness, and my everything.\n\nFrom the moment I met you, my life became brighter. Every laugh, every smile, and every moment we share is a memory I treasure.\n\nThank you for being you. I love you more than words can explain.\n\nForever yours,\nYour Valentine\nNumaan💖";
         
         function openLetter() {
             const envelope = document.getElementById('envelope');
             const letter = document.getElementById('letter');
-            
             envelope.classList.add('open-anim');
-            
             setTimeout(() => {
                 envelope.style.display = 'none';
                 letter.classList.add('visible');
-                
                 let i = 0;
                 const typeEl = document.getElementById('type-text');
                 const speed = 30; 
-
                 function type() {
                     if (i < fullText.length) {
-                        if (fullText.charAt(i) === '\n') {
-                            typeEl.innerHTML += '<br>';
-                        } else {
-                            typeEl.innerHTML += fullText.charAt(i);
-                        }
+                        if (fullText.charAt(i) === '\n') { typeEl.innerHTML += '<br>'; } 
+                        else { typeEl.innerHTML += fullText.charAt(i); }
                         i++;
                         setTimeout(type, speed);
-                    } else {
-                        document.querySelector('.cursor').style.display = 'none';
-                    }
+                    } else { document.querySelector('.cursor').style.display = 'none'; }
                 }
                 type();
             }, 600);
         }
 
-        // --- MUSIC ---
-        function playMusic() {
-            if (bgMusic.paused) {
-                bgMusic.play().catch(e => console.log("Auto-play blocked"));
-                musicBtn.innerHTML = "⏸️";
-            }
-        }
+        // --- MUSIC BUTTON ---
         musicBtn.addEventListener('click', () => {
             if (bgMusic.paused) { bgMusic.play(); musicBtn.innerHTML = "⏸️"; }
             else { bgMusic.pause(); musicBtn.innerHTML = "🎵"; }
         });
 
-        /* --- CANVAS ENGINE (Optimized for Mobile) --- */
+        /* --- CANVAS --- */
         const canvas = document.getElementById('bgCanvas');
         const ctx = canvas.getContext('2d');
         let width, height;
         let particles = [];
         let currentMode = 'stars'; 
 
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }
+        function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         resize();
 
@@ -440,7 +514,6 @@
                 ctx.fill();
             }
         }
-
         class RedHeart {
             constructor() {
                 this.x = Math.random() * width;
@@ -457,35 +530,25 @@
             }
         }
 
-        // Determine particle count based on screen size (Mobile Optimization)
         const isMobile = window.innerWidth < 768;
-        const starCount = isMobile ? 300 : 800; // Fewer stars on phone
-
+        const starCount = isMobile ? 300 : 800;
         for(let i=0; i<starCount; i++) particles.push(new Star());
 
         function animate() {
             ctx.clearRect(0, 0, width, height);
-
             if (currentMode === 'stars') {
                 const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width);
                 gradient.addColorStop(0, "rgba(75, 0, 130, 0.1)");
                 gradient.addColorStop(1, "rgba(0,0,0,0)");
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0,0,width,height);
-
-                for (let i = 0; i < particles.length; i++) {
-                    particles[i].update();
-                    particles[i].draw();
-                }
+                for (let i = 0; i < particles.length; i++) { particles[i].update(); particles[i].draw(); }
             } else {
                 if (Math.random() < 0.15) particles.push(new RedHeart()); 
                 for (let i = 0; i < particles.length; i++) {
                     particles[i].update();
                     particles[i].draw();
-                    if (particles[i].y > height) {
-                        particles.splice(i, 1);
-                        i--;
-                    }
+                    if (particles[i].y > height) { particles.splice(i, 1); i--; }
                 }
             }
             requestAnimationFrame(animate);
